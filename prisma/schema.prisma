@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model etl_cloudfunc_log_error {
+  cloudfunc_log_error_id String    @id(map: "cloudfun_log_error_pkey") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar(255)
+  cloud_function         cf_name
+  error                  String?
+  status                 cf_status @default(fallido)
+  created_at             DateTime  @default(now()) @db.Timestamp(6)
+  updated_at             DateTime  @default(now()) @db.Timestamp(6)
+}
+
+model etl_cloudfunc_log_sync {
+  cloudfunc_log_sync_id     String       @id @default(dbgenerated("uuid_generate_v4()")) @db.VarChar(255)
+  cloud_function            cf_name
+  bigquery_entity           String       @db.VarChar(255)
+  bigquery_query            String?
+  postgres_table            String       @db.VarChar(255)
+  inserted_rows             BigInt       @default(0)
+  updated_rows              BigInt       @default(0)
+  process_date              DateTime     @db.Timestamp(6)
+  last_cf_execution         DateTime     @default(now()) @db.Timestamptz(6)
+  created_at                DateTime     @default(now()) @db.Timestamp(6)
+  updated_at                DateTime     @default(now()) @db.Timestamp(6)
+  bigquery_rows             BigInt       @default(0)
+  filtered_rows             BigInt       @default(0)
+  filtered_entities         String?      @default("") @db.VarChar(255)
+  no_repeat_rows            BigInt       @default(0)
+  postgres_rows             BigInt       @default(0)
+  cf_partial_execution_time Decimal      @default(0) @db.Decimal
+  cf_total_execution_time   Decimal      @default(0) @db.Decimal
+  cf_execution_id           String       @default(dbgenerated("uuid_generate_v4()")) @db.VarChar(255)
+  cf_scheduler              cf_scheduler @default(delta)
+}
+
+model etl_cloudfunc_sql_error {
+  cloudfunc_sql_error_id String   @id @default(dbgenerated("uuid_generate_v4()")) @db.VarChar(255)
+  cloud_function         cf_name
+  bigquery_entity        String?  @db.VarChar(255)
+  bigquery_query         String?
+  postgres_table         String?  @db.VarChar(255)
+  postgres_query         String?
+  data_values            String?
+  error                  String?
+  created_at             DateTime @default(now()) @db.Timestamp(6)
+  updated_at             DateTime @default(now()) @db.Timestamp(6)
+}
+
+enum cf_name {
+  cf_etl_sap    @map("cf-etl-sap")
+  cf_etl_oracle @map("cf-etl-oracle")
+}
+
+enum cf_scheduler {
+  delta
+  massive
+  recovery
+}
+
+enum cf_status {
+  recuperado
+  fallido
+}
